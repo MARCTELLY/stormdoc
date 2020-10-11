@@ -1,10 +1,10 @@
-""" this module is for the block chaine """
-# Inspiration et source : https://developer.ibm.com/technologies/blockchain/tutorials/develop-a-blockchain-application-from-scratch-in-python/
+""" this module is for the block chain """
+# Inspiration et source : https://developer.ibm.com/technologies/blockchain/tutorials/develop-a-blockchain
+# -application-from-scratch-in-python/
 # Importing modules
 import datetime
 import hashlib
 import json
-
 
 
 class Block:
@@ -77,7 +77,7 @@ class Blockchain:
         block.nonce = 0
 
         computedHash = block.hashBlock()
-        while not computedHash.startswith("0"*Blockchain.DIFFICULTY):
+        while not computedHash.startswith("0" * Blockchain.DIFFICULTY):
             block.nonce += 1
             computedHash = block.hashBlock()
         return computedHash
@@ -104,7 +104,7 @@ class Blockchain:
         Check if block_hash is valid hash of block and satisfies
         the difficulty criteria.
         """
-        return (blockHash.startswith("0"*Blockchain.DIFFICULTY) and blockHash == block.hashBlock())
+        return (blockHash.startswith("0" * Blockchain.DIFFICULTY) and blockHash == block.hashBlock())
 
     def addNewTransaction(self, transaction):
         self.unconfirmed_transactions.append(transaction)
@@ -119,11 +119,39 @@ class Blockchain:
             return False
         lastBlock = self.lastBlock
 
-        newBlock = Block(index = lastBlock.index+1,
-            transaction = self.unconfirmed_transactions,
-            timestamp = datetime.datetime.now(),
-            previous_hash = lastBlock.hash)
+        newBlock = Block(index=lastBlock.index + 1,
+                         transaction=self.unconfirmed_transactions,
+                         timestamp=datetime.datetime.now(),
+                         previous_hash=lastBlock.hash)
         proof = self.proofOfWork()
         self.addBlock(newBlock, proof)
         self.unconfirmed_transactions = []
         return newBlock.index
+
+    def check_chain_validity(cls, chain):
+        """
+         A helper method to check if the entire blockchain is valid
+        """
+
+        result = True
+        previous_hash = "0"
+
+        # Iterate through every block
+        for block in chain:
+            block_hash = block.hash
+            # remove the hash field to recompute the hash again
+            # using `compute_hash` methode.
+            delattr(block, "hash")
+
+            if not cls.isValidProof(block, block.hash) or previous_hash != block.previous_hash:
+                result = False
+                break
+
+            block.hash, previous_hash = block_hash, block_hash
+
+        return result
+    def consensus():
+        """
+        Our simple algorithm. if a longer valid chain is found, our
+        chain is remplace with it
+        """
